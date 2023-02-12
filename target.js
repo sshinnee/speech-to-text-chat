@@ -43,17 +43,20 @@ let modelStream = model.createStream();*/
         )
     );*/
 
+let inputField = document.getElementsByTagName('textarea')[1]
+
 // --temporary--
 // Create a recognize stream
 const recognizeStream = client
   .streamingRecognize(request)
   .on('error', console.error)
-  .on('data', data =>
-    process.stdout.write(
-      data.results[0] && data.results[0].alternatives[0]
-        ? `Transcription: ${data.results[0].alternatives[0].transcript}\n`
-        : '\n\nReached transcription time limit, press Ctrl+C\n'
-    )
+  .on('data', data => {
+      if (data.results[0] && data.results[0].alternatives[0]) {
+          inputField.setAttribute(`${data.results[0].alternatives[0].transcript}`, inputField.value)
+          process.stdout.write(`Transcription: ${data.results[0].alternatives[0].transcript}\n`)
+      } else {
+          alert('Reached transcription time limit, press Ctrl+C')
+      }}
   );
 
 // Start recording and send the microphone input to the Speech API.

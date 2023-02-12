@@ -25,14 +25,14 @@ const request = {
 /**
  * Try DeepSpeech
  */
-const DeepSpeech = require('deepspeech');
+/*const DeepSpeech = require('deepspeech');
 
 let model = new DeepSpeech.Model(modelPath);
 model.enableExternalScorer(scorerPath);
-let modelStream = model.createStream();
+let modelStream = model.createStream();*/
 
 //Create a recognize stream for DeepSpeech
-const recognizeStream = modelStream
+/*const recognizeStream = modelStream
     .feedAudioContent()
     .on('error', console.error)
     .on('data', data =>
@@ -41,20 +41,20 @@ const recognizeStream = modelStream
                 ? `Transcription: ${data.results[0].alternatives[0].transcript}\n`
                 : '\n\nReached transcription time limit, press Ctrl+C\n'
         )
-    );
+    );*/
 
-// temporary
+// --temporary--
 // Create a recognize stream
-// const recognizeStream = client
-//   .streamingRecognize(request)
-//   .on('error', console.error)
-//   .on('data', data =>
-//     process.stdout.write(
-//       data.results[0] && data.results[0].alternatives[0]
-//         ? `Transcription: ${data.results[0].alternatives[0].transcript}\n`
-//         : '\n\nReached transcription time limit, press Ctrl+C\n'
-//     )
-//   );
+const recognizeStream = client
+  .streamingRecognize(request)
+  .on('error', console.error)
+  .on('data', data =>
+    process.stdout.write(
+      data.results[0] && data.results[0].alternatives[0]
+        ? `Transcription: ${data.results[0].alternatives[0].transcript}\n`
+        : '\n\nReached transcription time limit, press Ctrl+C\n'
+    )
+  );
 
 // Start recording and send the microphone input to the Speech API.
 // Ensure SoX is installed, see https://www.npmjs.com/package/node-record-lpcm16#dependencies
