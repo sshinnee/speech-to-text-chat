@@ -5,6 +5,9 @@ const recorder = require('node-record-lpcm16');
 // Imports the Google Cloud client library
 const speech = require('@google-cloud/speech');
 
+// import { ChatGPTAPI } from 'chatgpt';
+const {ChatGPTAPI} = await import('chatgpt');
+
 // Creates a client
 const client = new speech.SpeechClient();
 
@@ -24,18 +27,38 @@ const request = {
     interimResults: false, // If you want interim results, set this to true
 };
 
+const api = new ChatGPTAPI({ apiKey: process.env.OPENAI_API_KEY })
+let res;
+
 // Create a recognize stream
 const recognizeStream = client
     .streamingRecognize(request)
     .on('error', console.error)
-    .on('data', data =>
-        process.stdout.write(
-            data.results[0] && data.results[0].alternatives[0]
-                ? `Transcription: ${data.results[0].alternatives[0].transcript}\n`
-                : '\n\nReached transcription time limit, press Ctrl+C\n'
-        )
+    .on('data', data => writeAndSendToGPT(data)
     );
 
+async function writeAndSendToGPT(data) {
+    let processedContent = data.results[0].alternatives[0].transcript
+    process.stdout.write(
+        data.results[0] && data.results[0].alternatives[0]
+            ? `You: ${processedContent}\n`
+            : '\n\nReached transcription time limit, press Ctrl+C\n'
+    )
+
+    if (res) {
+        res = await api.sendMessage(processedContent, {
+            conversationId: res.conversationId,
+            parentMessageId: res.id,
+            onProgress: (partialResponse) => console.log(partialResponse.text)
+        })
+    } else {
+        res = await api.sendMessage(processedContent, {
+                onProgress: (partialResponse) => console.log(partialResponse.text)
+            })
+    }
+
+    console.log(res.text)
+}
 // Start recording and send the microphone input to the Speech API.
 // Ensure SoX is installed, see https://www.npmjs.com/package/node-record-lpcm16#dependencies
 recorder
